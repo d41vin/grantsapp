@@ -1,12 +1,5 @@
 import type { Metadata } from "next";
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from "@clerk/nextjs";
+import { ClerkProvider, Show, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs'
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "@/styles/globals.css";
 import { Button } from "@/components/ui/button";
@@ -34,15 +27,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en" className={inter.variable}>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          {" "}
+    <html lang="en" className={inter.variable}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <ClerkProvider>
           <header className="flex items-center justify-end gap-4 p-4">
             {/* Show the sign-in and sign-up buttons when the user is signed out */}
-            <SignedOut>
+            <Show when="signed-out">
               <SignInButton>
                 <Button
                   variant="outline"
@@ -62,15 +54,16 @@ export default function RootLayout({
                   Sign up
                 </Button>
               </SignUpButton>
-            </SignedOut>
+            </Show>
+
             {/* Show the user button when the user is signed in */}
-            <SignedIn>
+            <Show when="signed-in">
               <UserButton />
-            </SignedIn>
+            </Show>
           </header>
           {children}
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+      </body>
+    </html >
   );
 }
