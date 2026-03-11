@@ -8,7 +8,11 @@ export default defineSchema({
     name: v.string(),
     username: v.string(),
     avatar: v.optional(v.string()),
-    role: v.union(v.literal("builder"), v.literal("manager")),
+
+    // All roles this user has set up
+    roles: v.array(v.union(v.literal("builder"), v.literal("manager"))),
+    // Which role they are currently viewing the dashboard as
+    activeRole: v.union(v.literal("builder"), v.literal("manager")),
     onboardingComplete: v.boolean(),
 
     // Builder-specific fields
@@ -26,7 +30,6 @@ export default defineSchema({
     .index("by_username", ["username"]),
 
   organizations: defineTable({
-    // The user (manager) who owns this org
     managerId: v.id("users"),
     name: v.string(),
     slug: v.string(),

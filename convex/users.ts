@@ -1,17 +1,11 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
-/**
- * Get the currently authenticated user from the database.
- * Returns null if no user record exists (needs onboarding).
- * Returns undefined while loading (Convex convention).
- */
 export const getCurrentUser = query({
     args: {},
     handler: async (ctx) => {
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) return null;
-
         return await ctx.db
             .query("users")
             .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
@@ -19,9 +13,6 @@ export const getCurrentUser = query({
     },
 });
 
-/**
- * Check if a username is available (not taken by another user).
- */
 export const checkUsernameAvailable = query({
     args: { username: v.string() },
     handler: async (ctx, args) => {
@@ -34,9 +25,6 @@ export const checkUsernameAvailable = query({
     },
 });
 
-/**
- * Create or complete a Builder profile, marking onboarding as done.
- */
 export const createBuilderProfile = mutation({
     args: {
         clerkId: v.string(),
@@ -60,7 +48,8 @@ export const createBuilderProfile = mutation({
         if (existing) {
             await ctx.db.patch(existing._id, {
                 ...args,
-                role: "builder",
+                roles: ["builder"],
+                activeRole: "builder",
                 onboardingComplete: true,
                 updatedAt: Date.now(),
             });
@@ -69,7 +58,8 @@ export const createBuilderProfile = mutation({
 
         return await ctx.db.insert("users", {
             ...args,
-            role: "builder",
+            roles: ["builder"],
+            activeRole: "builder",
             onboardingComplete: true,
             createdAt: Date.now(),
             updatedAt: Date.now(),
@@ -77,9 +67,6 @@ export const createBuilderProfile = mutation({
     },
 });
 
-/**
- * Create a Program Manager profile + their organization, marking onboarding done.
- */
 export const createManagerProfile = mutation({
     args: {
         clerkId: v.string(),
@@ -87,7 +74,6 @@ export const createManagerProfile = mutation({
         name: v.string(),
         username: v.string(),
         avatar: v.optional(v.string()),
-        // Organization fields
         orgName: v.string(),
         orgSlug: v.string(),
         orgDescription: v.string(),
@@ -98,17 +84,11 @@ export const createManagerProfile = mutation({
     },
     handler: async (ctx, args) => {
         const {
-            orgName,
-            orgSlug,
-            orgDescription,
-            orgWebsite,
-            orgLogo,
-            orgTwitter,
-            orgGithub,
+            orgName, orgSlug, orgDescription,
+            orgWebsite, orgLogo, orgTwitter, orgGithub,
             ...userArgs
         } = args;
 
-        // Upsert user record
         let userId;
         const existing = await ctx.db
             .query("users")
@@ -118,7 +98,8 @@ export const createManagerProfile = mutation({
         if (existing) {
             await ctx.db.patch(existing._id, {
                 ...userArgs,
-                role: "manager",
+                roles: ["manager"],
+                activeRole: "manager",
                 onboardingComplete: true,
                 updatedAt: Date.now(),
             });
@@ -126,14 +107,14 @@ export const createManagerProfile = mutation({
         } else {
             userId = await ctx.db.insert("users", {
                 ...userArgs,
-                role: "manager",
+                roles: ["manager"],
+                activeRole: "manager",
                 onboardingComplete: true,
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
             });
         }
 
-        // Create organization
         const orgId = await ctx.db.insert("organizations", {
             managerId: userId,
             name: orgName,
@@ -148,5 +129,109 @@ export const createManagerProfile = mutation({
         });
 
         return { userId, orgId };
+    },
+});
+
+/**
+ * Add the manager role to an existing Builder — called from the
+ * in-dashboard "Become a Program Manager" modal.
+ */
+export const addManagerRole = mutation({
+    args: {
+        orgName: v.string(),
+        orgSlug: v.string(),
+        orgDescription: v.string(),
+        orgWebsite: v.optional(v.string()),
+        orgTwitter: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Not authenticated");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+            .unique();
+
+        if (!user) throw new Error("User not found");
+
+        const updatedRoles: Array<"builder" | "manager"> = user.roles.includes("manager")
+            ? user.roles
+            : [...user.roles, "manager"];
+
+        await ctx.db.patch(user._id, {
+            roles: updatedRoles,
+            activeRole: "manager",
+            updatedAt: Date.now(),
+        });
+
+        await ctx.db.insert("organizations", {
+            managerId: user._id,
+            name: args.orgName,
+            slug: args.orgSlug,
+            description: args.orgDescription,
+            website: args.orgWebsite,
+            twitter: args.orgTwitter,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+        });
+    },
+});
+
+/**
+ * Switch the active role for users who have both Builder and Manager roles.
+ */
+export const switchActiveRole = mutation({
+    args: {
+        role: v.union(v.literal("builder"), v.literal("manager")),
+    },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Not authenticated");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+            .unique();
+
+        if (!user) throw new Error("User not found");
+        if (!user.roles.includes(args.role)) throw new Error("Role not available");
+
+        await ctx.db.patch(user._id, {
+            activeRole: args.role,
+            updatedAt: Date.now(),
+        });
+    },
+});
+
+/**
+ * Add the builder role to an existing Manager — called from the
+ * in-dashboard "Join as a Builder" button.
+ *
+ * Unlike addManagerRole, builders don't need an organization,
+ * so no extra setup is required — just append the role and switch.
+ */
+export const addBuilderRole = mutation({
+    args: {},
+    handler: async (ctx) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Not authenticated");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+            .unique();
+
+        if (!user) throw new Error("User not found");
+
+        const updatedRoles: Array<"builder" | "manager"> = user.roles.includes("builder")
+            ? user.roles
+            : [...user.roles, "builder"];
+
+        await ctx.db.patch(user._id, {
+            roles: updatedRoles,
+            activeRole: "builder",
+            updatedAt: Date.now(),
+        });
     },
 });
