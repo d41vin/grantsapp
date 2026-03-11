@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { ActivityItem } from "@/components/dashboard/activity-item";
+import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
 
 // ─── Builder Overview ─────────────────────────────────────────────────────────
 
@@ -213,13 +214,14 @@ function ManagerOverview({ name }: { name: string }) {
 export default function DashboardPage() {
     const { isAuthenticated } = useConvexAuth();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const currentUser = useQuery(
-        (api as any).users.getCurrentUser,
+        api.users.getCurrentUser,
         !isAuthenticated ? "skip" : undefined
     );
 
-    if (!currentUser) return null;
+    if (currentUser === undefined) return <DashboardSkeleton />;
+
+    if (currentUser === null) return null;
 
     if (currentUser.activeRole === "builder") {
         return <BuilderOverview name={currentUser.name} />;
