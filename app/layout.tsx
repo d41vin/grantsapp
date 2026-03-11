@@ -1,15 +1,9 @@
 import type { Metadata } from "next";
-import {
-  ClerkProvider,
-  Show,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-} from "@clerk/nextjs";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "@/styles/globals.css";
-import { Button } from "@/components/ui/button";
-import ConvexClientProvider from '@/components/convex-client-provider'
+import ConvexClientProvider from "@/components/convex-client-provider";
+import { SiteHeader } from "@/components/site-header";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -24,8 +18,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GrantsApp",
-  description: "Grants management infrastructure for ecosystems",
+  title: "GrantsApp — Grants infrastructure for ecosystems",
+  description:
+    "Create and manage grant programs. Apply for funding. Build your on-chain reputation.",
 };
 
 export default function RootLayout({
@@ -38,40 +33,17 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ClerkProvider>
+        {/*
+          afterSignUpUrl → new users always hit onboarding first
+          afterSignInUrl → returning users go to dashboard,
+          but dashboard will redirect to onboarding if not complete
+        */}
+        <ClerkProvider
+        // afterSignUpUrl="/onboarding"
+        // afterSignInUrl="/dashboard"
+        >
           <ConvexClientProvider>
-            <header className="flex items-center justify-between gap-4 border-b px-6 py-3">
-              <span className="text-sm font-semibold tracking-tight">
-                GrantsApp
-              </span>
-              <div className="flex items-center gap-2">
-                <Show when="signed-out">
-                  <SignInButton forceRedirectUrl="/onboarding">
-                    <Button
-                      variant="outline"
-                      type="button"
-                      className="h-8 cursor-pointer px-3 text-xs"
-                    >
-                      Sign in
-                    </Button>
-                  </SignInButton>
-
-                  <SignUpButton forceRedirectUrl="/onboarding">
-                    <Button
-                      variant="default"
-                      type="button"
-                      className="h-8 cursor-pointer px-3 text-xs"
-                    >
-                      Sign up
-                    </Button>
-                  </SignUpButton>
-                </Show>
-
-                <Show when="signed-in">
-                  <UserButton />
-                </Show>
-              </div>
-            </header>
+            <SiteHeader />
             {children}
           </ConvexClientProvider>
         </ClerkProvider>
