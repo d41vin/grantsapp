@@ -99,6 +99,10 @@ The platform enables the full lifecycle of grants management, including:
 
 # What GrantsApp Enables
 
+### User Roles
+
+Two primary roles: Builder (applies for grants, tracks milestones, builds funding reputation) and Program Manager (creates and operates grant programs via an Organization). A single user account can hold both roles simultaneously and switch between them.
+
 ### Program Managers
 
 Organizations and ecosystems can create and operate grant programs using configurable workflows and funding mechanisms.
@@ -337,6 +341,10 @@ Initial stack may include:
 -   hosted database
     
 -   authentication and identity management
+
+## Current tech stack
+
+Next.js 16, Convex (backend + realtime DB), Clerk v7 (auth), Tailwind CSS, shadcn/base-ui components, Tabler icons. Targeting Filecoin Virtual Machine (FVM) for the first blockchain integration.
     
 
 After the core application is complete, components can progressively integrate with Web3 infrastructure.
@@ -395,5 +403,8 @@ The MVP may include:
     
 
 This demonstrates the core platform workflow while leaving room to expand mechanisms and onchain integrations in future iterations.
+
+## Update
+Authentication and onboarding are complete. Role-based system with Builder and Program Manager roles is live. Dashboard shell with role switching is complete. Current focus is the grant program creation and application flow.
 
 ----------
