@@ -15,6 +15,7 @@ import type * as lib_slugs from "../lib/slugs.js";
 import type * as milestones from "../milestones.js";
 import type * as notifications from "../notifications.js";
 import type * as organizationMembers from "../organizationMembers.js";
+import type * as organizations from "../organizations.js";
 import type * as programs from "../programs.js";
 import type * as projects from "../projects.js";
 import type * as reviews from "../reviews.js";
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   milestones: typeof milestones;
   notifications: typeof notifications;
   organizationMembers: typeof organizationMembers;
+  organizations: typeof organizations;
   programs: typeof programs;
   projects: typeof projects;
   reviews: typeof reviews;
