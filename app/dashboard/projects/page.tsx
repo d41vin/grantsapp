@@ -110,7 +110,7 @@ export default function ProjectsPage() {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const projects = useQuery(
-        (api as any).projects.listMine,
+        api.projects.listMine as any,
         !isAuthenticated ? "skip" : undefined
     );
 
