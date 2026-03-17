@@ -404,7 +404,19 @@ The MVP may include:
 
 This demonstrates the core platform workflow while leaving room to expand mechanisms and onchain integrations in future iterations.
 
-## Update
-Authentication and onboarding are complete. Role-based system with Builder and Program Manager roles is live. Dashboard shell with role switching is complete. Current focus is the grant program creation and application flow.
+## Current Status — Updated 2026-03-18
+
+The full hackathon MVP is complete. All core platform components described above 
+are built and functional:
+
+- Authentication, onboarding, and role switching (Builder / Program Manager)
+- Grant program creation, configuration, and lifecycle management
+- Application submission and review workflow
+- Milestone tracking and deliverable review
+- Public grants explorer, projects explorer, builder profiles, and org profiles
+- Team management and analytics dashboard
+
+Active development is now focused on polish and discoverability improvements. 
+See `docs/next-session-handoff.md` for the current work plan.
 
 ----------
