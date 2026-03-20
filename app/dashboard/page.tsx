@@ -10,6 +10,8 @@ import {
     IconChartLine,
     IconPlus,
     IconCircleCheck,
+    IconChevronRight,
+    IconClock,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -17,6 +19,8 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { ActivityItem } from "@/components/dashboard/activity-item";
 import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
+import { ApplicationStatusBadge } from "@/components/dashboard/applications/application-status-badge";
+import { cn } from "@/lib/utils";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -32,12 +36,59 @@ function relativeTime(ts: number): string {
     return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function formatDate(ts?: number) {
+    if (!ts) return "—";
+    return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function formatCurrency(amount?: number, currency = "USD") {
+    if (!amount) return null;
+    const prefix = currency === "USD" || currency === "USDC" ? "$" : "";
+    return `${prefix}${amount.toLocaleString()}`;
+}
+
 function actionToIcon(action: string) {
     if (action.startsWith("program.")) return IconCommand;
     if (action.startsWith("application.")) return IconFileText;
     if (action.startsWith("milestone.")) return IconTarget;
     if (action.startsWith("team.")) return IconUsers;
     return IconCircleCheck;
+}
+
+// ─── Recent Application Row ───────────────────────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function RecentApplicationRow({ application }: { application: any }) {
+    return (
+        <Link href={`/dashboard/applications/${application._id}`}>
+            <div className="group flex items-center gap-3 py-3 border-b last:border-b-0 hover:bg-muted/20 -mx-5 px-5 transition-colors">
+                <ApplicationStatusBadge status={application.status} showDot />
+                <div className="flex-1 min-w-0">
+                    <div className="truncate text-xs font-medium">{application.title}</div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                        {application.program?.name ?? "Unknown Program"}
+                    </div>
+                </div>
+                <div className="shrink-0 text-right">
+                    {application.status === "approved" && application.approvedAmount ? (
+                        <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                            {formatCurrency(application.approvedAmount, application.program?.currency)}
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                            <IconClock size={10} stroke={2} />
+                            {formatDate(application.submittedAt ?? application.createdAt)}
+                        </div>
+                    )}
+                </div>
+                <IconChevronRight
+                    size={12}
+                    stroke={2}
+                    className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                />
+            </div>
+        </Link>
+    );
 }
 
 // ─── Builder Overview ─────────────────────────────────────────────────────────
@@ -52,6 +103,13 @@ function BuilderOverview({ currentUser }: { currentUser: any }) {
         !isAuthenticated ? "skip" : undefined
     );
 
+    // Get recent applications (last 4)
+    const recentApplications = useQuery(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (api as any).applications.listMine,
+        !isAuthenticated ? "skip" : {}
+    );
+
     const activity = useQuery(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (api as any).activityLogs.getUserActivity,
@@ -59,6 +117,9 @@ function BuilderOverview({ currentUser }: { currentUser: any }) {
     );
 
     const name = currentUser.name;
+    // Show only the 4 most recent applications
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const latestApps = recentApplications?.slice(0, 4) ?? [];
 
     return (
         <div className="flex flex-col gap-8 p-8">
@@ -114,6 +175,7 @@ function BuilderOverview({ currentUser }: { currentUser: any }) {
             </div>
 
             <div className="grid grid-cols-3 gap-6">
+                {/* Recent Applications — real data */}
                 <div className="col-span-2 rounded-xl border">
                     <div className="border-b px-5 py-4">
                         <div className="flex items-center justify-between">
@@ -125,23 +187,45 @@ function BuilderOverview({ currentUser }: { currentUser: any }) {
                             </Link>
                         </div>
                     </div>
-                    <div className="p-5">
-                        {builderStats?.applicationCount === 0 || !builderStats ? (
-                            <EmptyState
-                                icon={IconFileText}
-                                title="No applications yet"
-                                description="Browse open grant programs and submit your first application to get started."
-                                action={{ label: "Browse Programs", href: "/grants" }}
-                            />
+                    <div className="px-5 py-2">
+                        {recentApplications === undefined ? (
+                            // Loading
+                            <div className="space-y-3 py-2">
+                                {[1, 2, 3].map((i) => (
+                                    <div key={i} className="flex items-center gap-3 py-2">
+                                        <div className="h-5 w-20 rounded-full bg-muted animate-pulse" />
+                                        <div className="flex-1 space-y-1.5">
+                                            <div className="h-3 w-40 rounded bg-muted animate-pulse" />
+                                            <div className="h-3 w-28 rounded bg-muted animate-pulse" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : latestApps.length === 0 ? (
+                            <div className="py-8">
+                                <EmptyState
+                                    icon={IconFileText}
+                                    title="No applications yet"
+                                    description="Browse open grant programs and submit your first application to get started."
+                                    action={{ label: "Browse Programs", href: "/grants" }}
+                                />
+                            </div>
                         ) : (
-                            <div className="py-4 text-center text-xs text-muted-foreground">
-                                Full application list coming soon.{" "}
-                                <Link
-                                    href="/dashboard/applications"
-                                    className="text-primary hover:underline"
-                                >
-                                    View in Applications →
-                                </Link>
+                            <div>
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                {latestApps.map((app: any) => (
+                                    <RecentApplicationRow key={app._id} application={app} />
+                                ))}
+                                {(recentApplications?.length ?? 0) > 4 && (
+                                    <div className="py-3 text-center">
+                                        <Link
+                                            href="/dashboard/applications"
+                                            className="text-[11px] text-primary hover:underline"
+                                        >
+                                            View all {recentApplications?.length} applications →
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
