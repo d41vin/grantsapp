@@ -178,7 +178,6 @@ function ManagerReviewPanel({ application }: { application: any }) {
         <div className="rounded-xl border bg-card p-5 space-y-4">
             <div className="text-sm font-semibold">Review Application</div>
 
-            {/* Start review CTA */}
             {application.status === "submitted" && (
                 <Button size="sm" variant="outline" className="w-full" onClick={handleStartReview}>
                     Mark as Under Review
@@ -187,7 +186,6 @@ function ManagerReviewPanel({ application }: { application: any }) {
 
             {canReview && (
                 <>
-                    {/* Decision */}
                     <div className="grid grid-cols-2 gap-2">
                         <button
                             onClick={() => setDecision("approved")}
@@ -215,7 +213,6 @@ function ManagerReviewPanel({ application }: { application: any }) {
                         </button>
                     </div>
 
-                    {/* Approved amount */}
                     {decision === "approved" && (
                         <Field>
                             <FieldLabel>Approved Amount</FieldLabel>
@@ -236,7 +233,6 @@ function ManagerReviewPanel({ application }: { application: any }) {
                         </Field>
                     )}
 
-                    {/* Notes */}
                     <Field>
                         <FieldLabel>Review Notes</FieldLabel>
                         <FieldDescription>Feedback for the applicant (optional but recommended).</FieldDescription>
@@ -312,7 +308,6 @@ export default function ApplicationDetailPage() {
         }
     };
 
-    // ── Loading ──────────────────────────────────────────────────────────────
     if (application === undefined || currentUser === undefined) {
         return (
             <div className="flex flex-col gap-6 p-8">
@@ -345,7 +340,6 @@ export default function ApplicationDetailPage() {
     const isOwner = application.applicantId === currentUser?._id;
     const canWithdraw = isOwner && ["submitted", "under_review"].includes(application.status);
 
-    // ── Render ───────────────────────────────────────────────────────────────
     return (
         <div className="flex flex-col gap-6 p-8">
             {/* Breadcrumb */}
@@ -378,16 +372,19 @@ export default function ApplicationDetailPage() {
                                 Submitted {formatDate(application.submittedAt)}
                             </span>
                         )}
+                        {/* Applicant username — links to builder profile in manager view */}
                         {isManager && application.applicant && (
-                            <span className="flex items-center gap-1">
+                            <Link
+                                href={`/builders/${application.applicant.username}`}
+                                className="flex items-center gap-1 hover:text-foreground transition-colors"
+                            >
                                 <IconUser size={11} stroke={2} />
                                 @{application.applicant.username}
-                            </span>
+                            </Link>
                         )}
                     </div>
                 </div>
 
-                {/* Withdraw button (builder only) */}
                 {canWithdraw && !isManager && (
                     <div className="shrink-0">
                         {showWithdrawConfirm ? (
@@ -412,9 +409,8 @@ export default function ApplicationDetailPage() {
 
             {/* Main content grid */}
             <div className="grid grid-cols-[1fr_320px] gap-6 items-start">
-                {/* Left column — application content */}
+                {/* Left column */}
                 <div className="flex flex-col gap-5">
-                    {/* Description */}
                     <div className="rounded-xl border bg-card p-5">
                         <Section title="Project Description">
                             <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">
@@ -423,7 +419,6 @@ export default function ApplicationDetailPage() {
                         </Section>
                     </div>
 
-                    {/* Details grid */}
                     <div className="rounded-xl border bg-card p-5 space-y-5">
                         {application.requestedAmount && (
                             <Section title="Requested Amount">
@@ -469,7 +464,6 @@ export default function ApplicationDetailPage() {
                         )}
                     </div>
 
-                    {/* Project */}
                     {application.project && (
                         <div className="rounded-xl border bg-card p-5">
                             <Section title="Project">
@@ -488,7 +482,6 @@ export default function ApplicationDetailPage() {
                         </div>
                     )}
 
-                    {/* Milestones */}
                     {application.milestones && application.milestones.length > 0 && (
                         <div className="rounded-xl border bg-card p-5 space-y-3">
                             <div className="flex items-center gap-2">
@@ -504,7 +497,6 @@ export default function ApplicationDetailPage() {
                         </div>
                     )}
 
-                    {/* Review feedback (builder view) */}
                     {!isManager && application.reviewNotes && (
                         <div className={cn(
                             "rounded-xl border p-5 space-y-2",
@@ -530,7 +522,7 @@ export default function ApplicationDetailPage() {
                     )}
                 </div>
 
-                {/* Right column — review panel or status sidebar */}
+                {/* Right column */}
                 <div className="flex flex-col gap-4">
                     {isManager ? (
                         <ManagerReviewPanel application={application} />
@@ -560,7 +552,6 @@ export default function ApplicationDetailPage() {
                         </div>
                     )}
 
-                    {/* Meta */}
                     <div className="rounded-xl border bg-muted/30 p-4 space-y-2.5">
                         <div className="flex justify-between text-[11px]">
                             <span className="text-muted-foreground">Created</span>
@@ -582,6 +573,18 @@ export default function ApplicationDetailPage() {
                             <div className="flex justify-between text-[11px]">
                                 <span className="text-muted-foreground">Approved</span>
                                 <span className="font-medium text-emerald-700 dark:text-emerald-400">{formatCurrency(application.approvedAmount, application.program?.currency)}</span>
+                            </div>
+                        )}
+                        {/* Applicant info in manager meta panel — links to builder profile */}
+                        {isManager && application.applicant && (
+                            <div className="flex justify-between text-[11px] pt-1 border-t mt-1">
+                                <span className="text-muted-foreground">Applicant</span>
+                                <Link
+                                    href={`/builders/${application.applicant.username}`}
+                                    className="font-medium text-primary hover:underline"
+                                >
+                                    @{application.applicant.username}
+                                </Link>
                             </div>
                         )}
                     </div>

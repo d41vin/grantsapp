@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ApplicationStatusBadge } from "@/components/dashboard/applications/application-status-badge";
 import { EmptyState } from "@/components/dashboard/empty-state";
@@ -11,10 +12,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
     IconFileText,
     IconChevronRight,
+    IconChevronDown,
     IconClock,
     IconUser,
-} from "@tabler/icons-react";
-import { cn } from "@/lib/utils";
+} from "@tabler/icons-react"; import { cn } from "@/lib/utils";
 import type { ApplicationStatus } from "@/components/dashboard/applications/application-status-badge";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -71,14 +72,18 @@ function ApplicationRow({ application, isManager }: { application: any; isManage
                         <span className="truncate">
                             {application.program?.name ?? "Unknown Program"}
                         </span>
-                        {/* Builder name — shown in manager view */}
+                        {/* Builder name — shown in manager view, links to builder profile */}
                         {isManager && application.applicant && (
                             <>
                                 <span className="opacity-30">·</span>
-                                <span className="flex items-center gap-1">
+                                <Link
+                                    href={`/builders/${application.applicant.username}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="flex items-center gap-1 hover:text-foreground transition-colors"
+                                >
                                     <IconUser size={10} stroke={2} />
                                     @{application.applicant.username}
-                                </span>
+                                </Link>
                             </>
                         )}
                         {/* Project */}
@@ -218,6 +223,11 @@ function BuilderApplications() {
 function ManagerApplications() {
     const [filter, setFilter] = useState<ApplicationStatus | "all">("submitted");
     const { isAuthenticated } = useConvexAuth();
+    const searchParams = useSearchParams();
+    // Pre-select program filter if ?program= is in URL (e.g. coming from program detail page)
+    const [programFilter, setProgramFilter] = useState<string | "all">(
+        searchParams.get("program") ?? "all"
+    );
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const myOrg = useQuery(
@@ -238,6 +248,13 @@ function ManagerApplications() {
 
     const isLoading = myOrg === undefined || programs === undefined || allApplications === undefined;
 
+    // Client-side program filter
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const displayed = programFilter === "all"
+        ? (allApplications ?? [])
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        : (allApplications ?? []).filter((a: any) => a.programId === programFilter);
+
     return (
         <div className="flex flex-col gap-6 p-8">
             <div className="flex items-start justify-between">
@@ -249,22 +266,56 @@ function ManagerApplications() {
                 </div>
             </div>
 
-            {/* Filters */}
-            <div className="flex items-center gap-0.5 rounded-lg border bg-muted/40 p-0.5 w-fit">
-                {MANAGER_FILTERS.map(({ label, value }) => (
-                    <button
-                        key={value}
-                        onClick={() => setFilter(value)}
-                        className={cn(
-                            "rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-100 cursor-pointer",
-                            filter === value
-                                ? "bg-background text-foreground shadow-sm"
-                                : "text-muted-foreground hover:text-foreground"
-                        )}
-                    >
-                        {label}
-                    </button>
-                ))}
+            {/* Filters row */}
+            <div className="flex items-center gap-3 flex-wrap">
+                {/* Status filter */}
+                <div className="flex items-center gap-0.5 rounded-lg border bg-muted/40 p-0.5">
+                    {MANAGER_FILTERS.map(({ label, value }) => (
+                        <button
+                            key={value}
+                            onClick={() => setFilter(value)}
+                            className={cn(
+                                "rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-100 cursor-pointer",
+                                filter === value
+                                    ? "bg-background text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            {label}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Program filter */}
+                {programs && programs.length > 1 && (
+                    <div className="relative">
+                        <select
+                            value={programFilter}
+                            onChange={(e) => setProgramFilter(e.target.value)}
+                            className="h-8 rounded-lg border border-input bg-background pl-3 pr-8 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-ring appearance-none cursor-pointer"
+                        >
+                            <option value="all">All programs</option>
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            {programs.map((p: any) => (
+                                <option key={p._id} value={p._id}>{p.name}</option>
+                            ))}
+                        </select>
+                        <IconChevronDown
+                            size={12}
+                            stroke={2}
+                            className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground"
+                        />
+                    </div>
+                )}
+
+                {/* Active filter indicator */}
+                {programFilter !== "all" && programs && (
+                    <div className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
+                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                        {programs.find((p: any) => p._id === programFilter)?.name}
+                        <button onClick={() => setProgramFilter("all")} className="hover:text-primary/70">×</button>
+                    </div>
+                )}
             </div>
 
             {/* List */}
@@ -290,7 +341,7 @@ function ManagerApplications() {
                         action={{ label: "Create Program", href: "/dashboard/programs/new" }}
                     />
                 </div>
-            ) : allApplications.length === 0 ? (
+            ) : displayed.length === 0 ? (
                 <div className="rounded-xl border p-10">
                     <EmptyState
                         icon={IconFileText}
@@ -304,7 +355,7 @@ function ManagerApplications() {
                 </div>
             ) : (
                 <div className="rounded-xl border">
-                    {allApplications.map((app: any) => (
+                    {displayed.map((app: any) => (
                         <ApplicationRow key={app._id} application={app} isManager={true} />
                     ))}
                 </div>
