@@ -78,10 +78,7 @@ function StatCard({
                 <Icon size={14} stroke={2} />
             </div>
             <div>
-                <div className={cn(
-                    "text-xl font-semibold tracking-tight",
-                    accent && "text-primary"
-                )}>
+                <div className={cn("text-xl font-semibold tracking-tight", accent && "text-primary")}>
                     {value}
                 </div>
                 <div className="text-[11px] text-muted-foreground">{label}</div>
@@ -100,7 +97,6 @@ function ProgramCard({ program }: { program: any }) {
     return (
         <Link href={`/grants/${program.slug}`}>
             <div className="group flex flex-col gap-3 rounded-xl border bg-card p-4 transition-all hover:border-primary/30 hover:shadow-sm">
-                {/* Badges */}
                 <div className="flex items-center gap-1.5 flex-wrap">
                     <StatusBadge status={program.status as ProgramStatus} />
                     <MechanismBadge mechanism={program.mechanism} />
@@ -115,8 +111,6 @@ function ProgramCard({ program }: { program: any }) {
                         </span>
                     )}
                 </div>
-
-                {/* Name + description */}
                 <div>
                     <div className="text-sm font-semibold leading-snug transition-colors group-hover:text-primary">
                         {program.name}
@@ -125,8 +119,6 @@ function ProgramCard({ program }: { program: any }) {
                         {program.description}
                     </p>
                 </div>
-
-                {/* Footer */}
                 <div className="flex items-center justify-between border-t pt-2.5">
                     <div className="flex items-center gap-3">
                         <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
@@ -182,7 +174,6 @@ export default function OrgProfilePage() {
 
     const isLoading = org === undefined || programs === undefined || orgStats === undefined;
 
-    // ── Loading ──────────────────────────────────────────────────────────────
     if (isLoading) {
         return (
             <div className="min-h-[calc(100vh-3.5rem)] bg-background">
@@ -218,13 +209,11 @@ export default function OrgProfilePage() {
                     icon={IconBuilding}
                     title="Organization not found"
                     description="This organization profile doesn't exist or is no longer available."
-                    action={{ label: "Browse Grants", href: "/grants" }}
+                    action={{ label: "Browse Organizations", href: "/orgs" }}
                 />
             </div>
         );
     }
-
-    // ── Derived ──────────────────────────────────────────────────────────────
 
     const activePrograms = programs?.filter((p: any) => p.status === "active") ?? [];
     const pastPrograms = programs?.filter((p: any) =>
@@ -234,15 +223,15 @@ export default function OrgProfilePage() {
 
     return (
         <div className="min-h-[calc(100vh-3.5rem)] bg-background">
-            {/* Breadcrumb */}
+            {/* Breadcrumb — back to /orgs */}
             <div className="border-b bg-muted/20 px-6 py-3">
                 <div className="mx-auto max-w-5xl">
                     <Link
-                        href="/grants"
+                        href="/orgs"
                         className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground w-fit"
                     >
                         <IconChevronLeft size={13} stroke={2.5} />
-                        Browse Grants
+                        Browse Organizations
                     </Link>
                 </div>
             </div>
@@ -250,57 +239,34 @@ export default function OrgProfilePage() {
             <div className="mx-auto max-w-5xl px-6 py-8 space-y-8">
                 {/* Org header */}
                 <div className="flex items-start gap-5">
-                    {/* Logo */}
                     {org.logo ? (
-                        <img
-                            src={org.logo}
-                            alt={org.name}
-                            className="size-16 rounded-xl object-cover shrink-0"
-                        />
+                        <img src={org.logo} alt={org.name} className="size-16 rounded-xl object-cover shrink-0" />
                     ) : (
                         <div className="flex size-16 shrink-0 items-center justify-center rounded-xl bg-primary/10">
                             <div className="size-6 rounded-md bg-primary" />
                         </div>
                     )}
 
-                    {/* Identity */}
                     <div className="flex-1 min-w-0">
                         <h1 className="text-2xl font-bold tracking-tight">{org.name}</h1>
                         <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed max-w-2xl">
                             {org.description}
                         </p>
-
-                        {/* Links */}
                         <div className="mt-3 flex items-center gap-4 flex-wrap">
                             {org.website && (
-                                <a
-                                    href={org.website}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-                                >
+                                <a href={org.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
                                     <IconWorld size={13} stroke={2} />
                                     {org.website.replace(/^https?:\/\//, "")}
                                 </a>
                             )}
                             {org.twitter && (
-                                <a
-                                    href={`https://twitter.com/${org.twitter}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-                                >
+                                <a href={`https://twitter.com/${org.twitter}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
                                     <IconBrandTwitter size={13} stroke={2} />
                                     @{org.twitter}
                                 </a>
                             )}
                             {org.github && (
-                                <a
-                                    href={`https://github.com/${org.github}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-                                >
+                                <a href={`https://github.com/${org.github}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
                                     <IconBrandGithub size={13} stroke={2} />
                                     {org.github}
                                 </a>
@@ -314,7 +280,6 @@ export default function OrgProfilePage() {
                         </div>
                     </div>
 
-                    {/* Browse CTA */}
                     {activePrograms.length > 0 && (
                         <Link href="/grants" className="shrink-0">
                             <Button size="sm" className="gap-1.5">
@@ -327,47 +292,24 @@ export default function OrgProfilePage() {
 
                 {/* Stats row */}
                 <div className="grid grid-cols-4 gap-3">
-                    <StatCard
-                        icon={IconChartLine}
-                        label="Total funded"
-                        value={orgStats.totalAllocated > 0
-                            ? formatCurrency(orgStats.totalAllocated)
-                            : "$0"}
-                        accent={orgStats.totalAllocated > 0}
-                    />
-                    <StatCard
-                        icon={IconCommand}
-                        label="Programs"
-                        value={orgStats.totalProgramCount}
-                    />
-                    <StatCard
-                        icon={IconCircleCheck}
-                        label="Projects funded"
-                        value={orgStats.totalApproved}
-                    />
-                    <StatCard
-                        icon={IconUsers}
-                        label="Team members"
-                        value={memberCount || 1}
-                    />
+                    <StatCard icon={IconChartLine} label="Total funded" value={orgStats.totalAllocated > 0 ? formatCurrency(orgStats.totalAllocated) : "$0"} accent={orgStats.totalAllocated > 0} />
+                    <StatCard icon={IconCommand} label="Programs" value={orgStats.totalProgramCount} />
+                    <StatCard icon={IconCircleCheck} label="Projects funded" value={orgStats.totalApproved} />
+                    <StatCard icon={IconUsers} label="Team members" value={memberCount || 1} />
                 </div>
 
                 {/* Active programs */}
                 {activePrograms.length > 0 && (
                     <div>
-                        <div className="mb-4 flex items-center justify-between">
+                        <div className="mb-4">
                             <h2 className="text-base font-semibold">
                                 Open Programs
-                                <span className="ml-1.5 text-sm font-normal text-muted-foreground">
-                                    ({activePrograms.length})
-                                </span>
+                                <span className="ml-1.5 text-sm font-normal text-muted-foreground">({activePrograms.length})</span>
                             </h2>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                            {activePrograms.map((program: any) => (
-                                <ProgramCard key={program._id} program={program} />
-                            ))}
+                            {activePrograms.map((program: any) => <ProgramCard key={program._id} program={program} />)}
                         </div>
                     </div>
                 )}
@@ -378,50 +320,38 @@ export default function OrgProfilePage() {
                         <div className="mb-4">
                             <h2 className="text-base font-semibold">
                                 Past Programs
-                                <span className="ml-1.5 text-sm font-normal text-muted-foreground">
-                                    ({pastPrograms.length})
-                                </span>
+                                <span className="ml-1.5 text-sm font-normal text-muted-foreground">({pastPrograms.length})</span>
                             </h2>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                            {pastPrograms.map((program: any) => (
-                                <ProgramCard key={program._id} program={program} />
-                            ))}
+                            {pastPrograms.map((program: any) => <ProgramCard key={program._id} program={program} />)}
                         </div>
                     </div>
                 )}
 
-                {/* Empty state — no programs yet */}
-                {programs?.length === 0 && (
-                    <div className="rounded-xl border">
-                        <div className="p-10">
-                            <EmptyState
-                                icon={IconCommand}
-                                title="No programs yet"
-                                description="This organization hasn't launched any grant programs yet. Check back soon."
-                                action={{ label: "Browse All Grants", href: "/grants" }}
-                            />
-                        </div>
+                {activePrograms.length === 0 && pastPrograms.length === 0 && (
+                    <div className="rounded-xl border p-10">
+                        <EmptyState
+                            icon={IconCommand}
+                            title="No programs yet"
+                            description="This organization hasn't launched any grant programs yet. Check back soon."
+                            action={{ label: "Browse All Grants", href: "/grants" }}
+                        />
                     </div>
                 )}
 
-                {/* Team (public member list — names only) */}
+                {/* Team */}
                 {membersData && (membersData.owner || membersData.members?.length > 0) && (
                     <div>
                         <div className="mb-4">
                             <h2 className="text-base font-semibold">Team</h2>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                            {/* Owner */}
                             {membersData.owner && (
                                 <div className="flex items-center gap-2 rounded-full border bg-card px-3 py-1.5">
                                     {membersData.owner.avatar ? (
-                                        <img
-                                            src={membersData.owner.avatar}
-                                            alt={membersData.owner.name}
-                                            className="size-5 rounded-full object-cover"
-                                        />
+                                        <img src={membersData.owner.avatar} alt={membersData.owner.name} className="size-5 rounded-full object-cover" />
                                     ) : (
                                         <div className="flex size-5 items-center justify-center rounded-full bg-primary/10 text-[9px] font-semibold text-primary">
                                             {membersData.owner.name?.[0]?.toUpperCase() ?? "?"}
@@ -431,31 +361,20 @@ export default function OrgProfilePage() {
                                     <span className="text-[10px] text-muted-foreground">Owner</span>
                                 </div>
                             )}
-
-                            {/* Other members */}
                             {membersData.members
                                 ?.filter((m: any) => m.status === "active")
                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 .map((member: any) => (
-                                    <div
-                                        key={member._id}
-                                        className="flex items-center gap-2 rounded-full border bg-card px-3 py-1.5"
-                                    >
+                                    <div key={member._id} className="flex items-center gap-2 rounded-full border bg-card px-3 py-1.5">
                                         {member.user?.avatar ? (
-                                            <img
-                                                src={member.user.avatar}
-                                                alt={member.user.name}
-                                                className="size-5 rounded-full object-cover"
-                                            />
+                                            <img src={member.user.avatar} alt={member.user.name} className="size-5 rounded-full object-cover" />
                                         ) : (
                                             <div className="flex size-5 items-center justify-center rounded-full bg-muted text-[9px] font-semibold text-muted-foreground">
                                                 {member.user?.name?.[0]?.toUpperCase() ?? "?"}
                                             </div>
                                         )}
                                         <span className="text-xs">{member.user?.name ?? "—"}</span>
-                                        <span className="text-[10px] text-muted-foreground capitalize">
-                                            {member.role}
-                                        </span>
+                                        <span className="text-[10px] text-muted-foreground capitalize">{member.role}</span>
                                     </div>
                                 ))}
                         </div>

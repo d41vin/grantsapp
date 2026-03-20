@@ -95,8 +95,10 @@ export default function GrantDetailPage() {
 
     const isAcceptingApplications = program.status === "active";
     const deadline = daysUntil(program.applicationEndDate);
-    const deadlineUrgent = deadline && !["Closed", null].includes(deadline) &&
-        parseInt(deadline) <= 7;
+    const deadlineUrgent = deadline !== null &&
+        deadline !== "Closed" &&
+        (deadline === "Closes today" || deadline === "1 day left" ||
+            (deadline.includes("days left") && parseInt(deadline) <= 7));
 
     return (
         <div className="min-h-[calc(100vh-3.5rem)] bg-background">
@@ -132,14 +134,23 @@ export default function GrantDetailPage() {
                                 ))}
                             </div>
 
-                            {/* Org */}
+                            {/* Org — links to org profile */}
                             <div className="flex items-center gap-2">
                                 <div className="flex size-6 items-center justify-center rounded-md bg-primary/10">
                                     <div className="size-2.5 rounded-sm bg-primary" />
                                 </div>
-                                <span className="text-xs font-medium text-muted-foreground">
-                                    {program.organization?.name}
-                                </span>
+                                {program.organization?.slug ? (
+                                    <Link
+                                        href={`/orgs/${program.organization.slug}`}
+                                        className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                                    >
+                                        {program.organization?.name}
+                                    </Link>
+                                ) : (
+                                    <span className="text-xs font-medium text-muted-foreground">
+                                        {program.organization?.name}
+                                    </span>
+                                )}
                                 {program.organization?.website && (
                                     <a
                                         href={program.organization.website}
@@ -297,6 +308,22 @@ export default function GrantDetailPage() {
                                 </div>
                             ))}
                         </div>
+
+                        {/* Org link */}
+                        {program.organization?.slug && (
+                            <Link href={`/orgs/${program.organization.slug}`}>
+                                <div className="rounded-xl border bg-muted/20 p-4 flex items-center gap-3 hover:border-primary/30 transition-colors">
+                                    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                                        <div className="size-3 rounded-sm bg-primary" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-xs font-medium truncate">{program.organization.name}</div>
+                                        <div className="text-[11px] text-muted-foreground">View organization profile</div>
+                                    </div>
+                                    <IconChevronLeft size={12} stroke={2} className="text-muted-foreground rotate-180 shrink-0" />
+                                </div>
+                            </Link>
+                        )}
                     </div>
                 </div>
             </div>

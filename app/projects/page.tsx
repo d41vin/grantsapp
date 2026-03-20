@@ -73,10 +73,15 @@ function ProjectCard({ project }: { project: any }) {
                             <div className="truncate text-sm font-semibold leading-tight transition-colors group-hover:text-primary">
                                 {project.name}
                             </div>
+                            {/* Owner username links to builder profile */}
                             {project.owner && (
-                                <div className="text-[11px] text-muted-foreground">
+                                <Link
+                                    href={`/builders/${project.owner.username}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                                >
                                     @{project.owner.username}
-                                </div>
+                                </Link>
                             )}
                         </div>
                     </div>

@@ -142,7 +142,6 @@ export default function ProjectDetailPage() {
                     <div className="space-y-5">
                         {/* Header */}
                         <div className="space-y-3">
-                            {/* Tags */}
                             {tags.length > 0 && (
                                 <div className="flex flex-wrap gap-1">
                                     {tags.slice(0, 5).map((tag: string) => (
@@ -171,10 +170,17 @@ export default function ProjectDetailPage() {
                                 )}
                                 <div>
                                     <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
+                                    {/* Owner — name + username both link to builder profile */}
                                     {project.owner && (
                                         <div className="text-xs text-muted-foreground mt-0.5">
-                                            by @{project.owner.username}
-                                            {project.owner.name && ` · ${project.owner.name}`}
+                                            by{" "}
+                                            <Link
+                                                href={`/builders/${project.owner.username}`}
+                                                className="hover:text-foreground transition-colors font-medium"
+                                            >
+                                                @{project.owner.username}
+                                                {project.owner.name && ` · ${project.owner.name}`}
+                                            </Link>
                                         </div>
                                     )}
                                 </div>
@@ -258,10 +264,13 @@ export default function ProjectDetailPage() {
                             </DetailSection>
                         )}
 
-                        {/* Builder info */}
+                        {/* Builder info — links to builder profile */}
                         {project.owner && (
                             <DetailSection title="Builder">
-                                <div className="flex items-center gap-3">
+                                <Link
+                                    href={`/builders/${project.owner.username}`}
+                                    className="flex items-center gap-3 group"
+                                >
                                     {project.owner.avatar ? (
                                         <img
                                             src={project.owner.avatar}
@@ -274,7 +283,9 @@ export default function ProjectDetailPage() {
                                         </div>
                                     )}
                                     <div>
-                                        <div className="text-sm font-medium">{project.owner.name}</div>
+                                        <div className="text-sm font-medium group-hover:text-primary transition-colors">
+                                            {project.owner.name}
+                                        </div>
                                         <div className="text-[11px] text-muted-foreground">
                                             @{project.owner.username}
                                         </div>
@@ -284,7 +295,7 @@ export default function ProjectDetailPage() {
                                             </p>
                                         )}
                                     </div>
-                                </div>
+                                </Link>
                                 {project.owner.skills && project.owner.skills.length > 0 && (
                                     <div className="flex flex-wrap gap-1 mt-2">
                                         {project.owner.skills.slice(0, 6).map((skill: string) => (
@@ -303,9 +314,7 @@ export default function ProjectDetailPage() {
 
                     {/* Right sidebar */}
                     <div className="sticky top-24 space-y-4">
-                        {/* Stats card */}
                         <div className="rounded-xl border bg-card p-5 space-y-4">
-                            {/* Funding headline */}
                             <div className="space-y-1">
                                 <div className="text-2xl font-bold tracking-tight">
                                     {funded ?? "—"}
@@ -334,7 +343,6 @@ export default function ProjectDetailPage() {
                                 )}
                             </div>
 
-                            {/* Apply CTA */}
                             <div className="pt-1 border-t">
                                 {isAuthenticated ? (
                                     <Link href="/grants" className="block">
@@ -352,12 +360,15 @@ export default function ProjectDetailPage() {
                             </div>
                         </div>
 
-                        {/* Social links */}
-                        {(project.owner?.github || project.owner?.twitter || project.owner?.website) && (
+                        {/* Builder quick links */}
+                        {project.owner && (
                             <div className="rounded-xl border bg-muted/30 p-4 space-y-2.5">
-                                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                                    Builder links
-                                </div>
+                                <Link
+                                    href={`/builders/${project.owner.username}`}
+                                    className="flex items-center gap-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground font-medium"
+                                >
+                                    View builder profile →
+                                </Link>
                                 {project.owner.github && (
                                     <a
                                         href={`https://github.com/${project.owner.github}`}
@@ -367,17 +378,6 @@ export default function ProjectDetailPage() {
                                     >
                                         <IconBrandGithub size={12} stroke={2} />
                                         github.com/{project.owner.github}
-                                    </a>
-                                )}
-                                {project.owner.twitter && (
-                                    <a
-                                        href={`https://twitter.com/${project.owner.twitter}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-                                    >
-                                        <span className="text-[11px] font-medium">𝕏</span>
-                                        @{project.owner.twitter}
                                     </a>
                                 )}
                                 {project.owner.website && (

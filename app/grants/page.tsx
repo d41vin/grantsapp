@@ -67,21 +67,32 @@ function ProgramCard({ program }: { program: any }) {
             <div className="group flex flex-col gap-4 rounded-xl border bg-card p-5 transition-all duration-150 hover:border-primary/40 hover:shadow-sm cursor-pointer h-full">
                 {/* Org + mechanism */}
                 <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
                         {program.organization?.logo ? (
                             <img
                                 src={program.organization.logo}
                                 alt={program.organization.name}
-                                className="size-6 rounded-md object-cover"
+                                className="size-6 rounded-md object-cover shrink-0"
                             />
                         ) : (
-                            <div className="flex size-6 items-center justify-center rounded-md bg-primary/10">
+                            <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary/10">
                                 <div className="size-2.5 rounded-sm bg-primary" />
                             </div>
                         )}
-                        <span className="text-[11px] font-medium text-muted-foreground">
-                            {program.organization?.name ?? "Unknown Org"}
-                        </span>
+                        {/* Org name links to org profile */}
+                        {program.organization?.slug ? (
+                            <Link
+                                href={`/orgs/${program.organization.slug}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="truncate text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                {program.organization?.name ?? "Unknown Org"}
+                            </Link>
+                        ) : (
+                            <span className="truncate text-[11px] font-medium text-muted-foreground">
+                                {program.organization?.name ?? "Unknown Org"}
+                            </span>
+                        )}
                     </div>
                     <MechanismBadge mechanism={program.mechanism} />
                 </div>

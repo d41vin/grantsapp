@@ -140,8 +140,16 @@ function GrantRow({ grant }: { grant: any }) {
             <div className="flex-1 min-w-0">
                 <div className="truncate text-xs font-medium">{grant.title}</div>
                 <div className="text-[11px] text-muted-foreground">
-                    {grant.program?.name ?? "Unknown program"}
-                    {grant.project && ` · ${grant.project.name}`}
+                    {grant.program?.slug ? (
+                        <Link href={`/grants/${grant.program.slug}`} className="hover:text-foreground transition-colors">
+                            {grant.program.name}
+                        </Link>
+                    ) : (grant.program?.name ?? "Unknown program")}
+                    {grant.project?.slug ? (
+                        <Link href={`/projects/${grant.project.slug}`} className="hover:text-foreground transition-colors">
+                            {` · ${grant.project.name}`}
+                        </Link>
+                    ) : grant.project ? ` · ${grant.project.name}` : null}
                 </div>
             </div>
             <div className="shrink-0 text-right">
@@ -168,7 +176,6 @@ export default function BuilderProfilePage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const builder = useQuery((api as any).profiles.getBuilderByUsername, { username });
 
-    // ── Loading ──────────────────────────────────────────────────────────────
     if (builder === undefined) {
         return (
             <div className="min-h-[calc(100vh-3.5rem)] bg-background">
@@ -202,7 +209,7 @@ export default function BuilderProfilePage() {
                     icon={IconCode}
                     title="Builder not found"
                     description="This profile doesn't exist or belongs to a program manager account."
-                    action={{ label: "Browse Projects", href: "/projects" }}
+                    action={{ label: "Browse Builders", href: "/builders" }}
                 />
             </div>
         );
@@ -212,15 +219,15 @@ export default function BuilderProfilePage() {
 
     return (
         <div className="min-h-[calc(100vh-3.5rem)] bg-background">
-            {/* Breadcrumb */}
+            {/* Breadcrumb — back to /builders */}
             <div className="border-b bg-muted/20 px-6 py-3">
                 <div className="mx-auto max-w-4xl">
                     <Link
-                        href="/projects"
+                        href="/builders"
                         className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground w-fit"
                     >
                         <IconChevronLeft size={13} stroke={2.5} />
-                        Browse Projects
+                        Browse Builders
                     </Link>
                 </div>
             </div>
@@ -228,7 +235,6 @@ export default function BuilderProfilePage() {
             <div className="mx-auto max-w-4xl px-6 py-8 space-y-8">
                 {/* Profile header */}
                 <div className="flex items-start gap-5">
-                    {/* Avatar */}
                     {builder.avatar ? (
                         <img
                             src={builder.avatar}
@@ -241,7 +247,6 @@ export default function BuilderProfilePage() {
                         </div>
                     )}
 
-                    {/* Identity */}
                     <div className="flex-1 min-w-0 pt-1">
                         <h1 className="text-2xl font-bold tracking-tight">{builder.name}</h1>
                         <div className="mt-0.5 text-sm text-muted-foreground">@{builder.username}</div>
@@ -252,7 +257,6 @@ export default function BuilderProfilePage() {
                             </p>
                         )}
 
-                        {/* Social links */}
                         <div className="mt-3 flex items-center gap-4 flex-wrap">
                             {builder.github && (
                                 <a
