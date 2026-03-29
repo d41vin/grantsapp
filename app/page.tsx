@@ -17,7 +17,8 @@ import {
     IconCommand,
     IconListSearch,
     IconStar,
-    IconZap,
+    IconBolt,
+    IconShield
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
@@ -71,7 +72,7 @@ const MANAGER_FEATURES = [
 
 const MECHANISMS = [
     {
-        icon: IconZap,
+        icon: IconBolt,
         label: "Direct Grants",
         description: "Full funding on approval. Best for well-scoped, lower-risk projects.",
         color: "text-primary",

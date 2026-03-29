@@ -27,6 +27,9 @@ import {
 } from "@tabler/icons-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
+import { StatusBanner } from "@/components/dashboard/status-banner";
+import { RecordPaymentPanel } from "@/components/dashboard/record-payment-panel";
+import { CommentsSection } from "@/components/dashboard/comments-section";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -407,6 +410,18 @@ export default function ApplicationDetailPage() {
                 )}
             </div>
 
+            {/* Status Banner */}
+            <StatusBanner
+                status={application.status}
+                paymentStatus={application.paymentStatus}
+                paymentTxHash={application.paymentTxHash}
+                paymentAmount={application.paymentAmount}
+                paymentCurrency={application.paymentCurrency ?? application.program?.currency}
+                paidAt={application.paidAt}
+                isManager={isManager}
+                type="application"
+            />
+
             {/* Main content grid */}
             <div className="grid grid-cols-[1fr_320px] gap-6 items-start">
                 {/* Left column */}
@@ -520,12 +535,29 @@ export default function ApplicationDetailPage() {
                             )}
                         </div>
                     )}
+
+                    {/* Comments */}
+                    <CommentsSection
+                        targetType="application"
+                        targetId={application._id}
+                        isOrgMember={isManager}
+                    />
                 </div>
 
                 {/* Right column */}
                 <div className="flex flex-col gap-4">
                     {isManager ? (
-                        <ManagerReviewPanel application={application} />
+                        <>
+                            <ManagerReviewPanel application={application} />
+                            <RecordPaymentPanel
+                                targetType="application"
+                                targetId={application._id}
+                                status={application.status}
+                                paymentStatus={application.paymentStatus}
+                                suggestedAmount={application.approvedAmount ?? application.requestedAmount}
+                                currency={application.program?.currency ?? "USD"}
+                            />
+                        </>
                     ) : (
                         <div className="rounded-xl border bg-card p-5 space-y-4">
                             <div className="text-sm font-semibold">Status</div>

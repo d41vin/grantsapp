@@ -30,6 +30,9 @@ import {
 } from "@tabler/icons-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
+import { StatusBanner } from "@/components/dashboard/status-banner";
+import { RecordPaymentPanel } from "@/components/dashboard/record-payment-panel";
+import { CommentsSection } from "@/components/dashboard/comments-section";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -170,7 +173,7 @@ function BuilderActionPanel({ milestone }: { milestone: any }) {
                     <div className="text-sm font-semibold">Submitted for Review</div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                    Your deliverables are being reviewed. You'll be notified when a decision is made.
+                    Your deliverables are being reviewed. You&apos;ll be notified when a decision is made.
                 </p>
                 <div className="text-[11px] text-muted-foreground">
                     Submitted {formatDate(milestone.submittedAt)}
@@ -591,6 +594,18 @@ export default function MilestoneDetailPage() {
                 </div>
             </div>
 
+            {/* Status Banner */}
+            <StatusBanner
+                status={milestone.status}
+                paymentStatus={milestone.paymentStatus}
+                paymentTxHash={milestone.paymentTxHash}
+                paymentAmount={milestone.paymentAmount}
+                paymentCurrency={milestone.paymentCurrency}
+                paidAt={milestone.paidAt}
+                isManager={isManager}
+                type="milestone"
+            />
+
             {/* Main grid */}
             <div className="grid grid-cols-[1fr_320px] gap-6 items-start">
                 {/* Left — content */}
@@ -672,13 +687,29 @@ export default function MilestoneDetailPage() {
                             <p className="text-xs leading-relaxed text-muted-foreground">{milestone.reviewNotes}</p>
                         </div>
                     )}
+
+                    {/* Comments */}
+                    <CommentsSection
+                        targetType="milestone"
+                        targetId={milestone._id}
+                        isOrgMember={isManager}
+                    />
                 </div>
 
                 {/* Right — action panel + meta */}
                 <div className="flex flex-col gap-4">
                     {/* Action panel */}
                     {isManager
-                        ? <ManagerReviewPanel milestone={milestone} />
+                        ? <>
+                            <ManagerReviewPanel milestone={milestone} />
+                            <RecordPaymentPanel
+                                targetType="milestone"
+                                targetId={milestone._id}
+                                status={milestone.status}
+                                paymentStatus={milestone.paymentStatus}
+                                suggestedAmount={milestone.amount}
+                            />
+                          </>
                         : <BuilderActionPanel milestone={milestone} />}
 
                     {/* Meta */}
