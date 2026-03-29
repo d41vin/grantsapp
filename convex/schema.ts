@@ -171,6 +171,23 @@ export default defineSchema({
 
     approvedAmount: v.optional(v.number()),
 
+    // Payment tracking
+    paymentStatus: v.optional(v.union(
+      v.literal("unpaid"),
+      v.literal("payment_pending"),
+      v.literal("paid")
+    )),
+    paymentAmount: v.optional(v.number()),
+    paymentCurrency: v.optional(v.string()),
+    paymentTxHash: v.optional(v.string()),
+    paymentMethod: v.optional(v.union(
+      v.literal("fvm_contract"),
+      v.literal("manual"),
+      v.literal("external_link")
+    )),
+    paidAt: v.optional(v.number()),
+    paidBy: v.optional(v.id("users")),
+
     submittedAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -209,6 +226,23 @@ export default defineSchema({
     reviewNotes: v.optional(v.string()),
     reviewedBy: v.optional(v.id("users")),
     reviewedAt: v.optional(v.number()),
+
+    // Payment tracking
+    paymentStatus: v.optional(v.union(
+      v.literal("unpaid"),
+      v.literal("payment_pending"),
+      v.literal("paid")
+    )),
+    paymentAmount: v.optional(v.number()),
+    paymentCurrency: v.optional(v.string()),
+    paymentTxHash: v.optional(v.string()),
+    paymentMethod: v.optional(v.union(
+      v.literal("fvm_contract"),
+      v.literal("manual"),
+      v.literal("external_link")
+    )),
+    paidAt: v.optional(v.number()),
+    paidBy: v.optional(v.id("users")),
 
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -275,4 +309,19 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_user_unread", ["userId", "read"]),
+
+  comments: defineTable({
+    targetType: v.union(v.literal("application"), v.literal("milestone")),
+    targetId: v.string(),
+
+    authorId: v.id("users"),
+    content: v.string(),
+
+    isInternal: v.boolean(),
+
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_target", ["targetType", "targetId"])
+    .index("by_author", ["authorId"]),
 });

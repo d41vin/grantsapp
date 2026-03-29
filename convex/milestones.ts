@@ -342,6 +342,7 @@ export const review = mutation({
             reviewNotes: args.reviewNotes,
             reviewedBy: user._id,
             reviewedAt: Date.now(),
+            ...(args.decision === "approved" ? { paymentStatus: "unpaid" as const } : {}),
             updatedAt: Date.now(),
         });
 
@@ -378,6 +379,72 @@ export const review = mutation({
             milestoneId: args.milestoneId,
             action: `milestone.${args.decision}`,
             description: `${args.decision === "approved" ? "Approved" : args.decision === "rejected" ? "Rejected" : "Requested revision for"} milestone "${milestone.title}"`,
+        });
+    },
+});
+
+/**
+ * Record a payment for an approved milestone (manager action).
+ */
+export const recordPayment = mutation({
+    args: {
+        milestoneId: v.id("milestones"),
+        paymentMethod: v.union(
+            v.literal("fvm_contract"),
+            v.literal("manual"),
+            v.literal("external_link")
+        ),
+        paymentAmount: v.number(),
+        paymentCurrency: v.string(),
+        paymentTxHash: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const milestone = await ctx.db.get(args.milestoneId);
+        if (!milestone) throw new Error("Milestone not found");
+
+        const program = await ctx.db.get(milestone.programId);
+        if (!program) throw new Error("Program not found");
+
+        const { user } = await requireOrgMember(
+            ctx,
+            program.organizationId,
+            "reviewer"
+        );
+
+        if (milestone.status !== "approved") {
+            throw new Error("Milestone must be approved to record payment");
+        }
+
+        await ctx.db.patch(args.milestoneId, {
+            paymentStatus: "paid",
+            paymentAmount: args.paymentAmount,
+            paymentCurrency: args.paymentCurrency,
+            paymentTxHash: args.paymentTxHash,
+            paymentMethod: args.paymentMethod,
+            paidAt: Date.now(),
+            paidBy: user._id,
+            updatedAt: Date.now(),
+        });
+
+        // Notify the builder
+        await createNotification(ctx, {
+            userId: milestone.applicantId,
+            type: "milestone_payment_completed",
+            title: "Milestone Payment Received! 💰",
+            message: `Payment of ${args.paymentCurrency === "USD" || args.paymentCurrency === "USDC" ? "$" : ""}${args.paymentAmount.toLocaleString()} ${args.paymentCurrency} processed for milestone "${milestone.title}"`,
+            programId: milestone.programId,
+            applicationId: milestone.applicationId,
+            milestoneId: args.milestoneId,
+        });
+
+        await logActivity(ctx, {
+            userId: user._id,
+            organizationId: program.organizationId,
+            programId: milestone.programId,
+            applicationId: milestone.applicationId,
+            milestoneId: args.milestoneId,
+            action: "milestone.payment_completed",
+            description: `Recorded payment of ${args.paymentAmount} ${args.paymentCurrency} for milestone "${milestone.title}"`,
         });
     },
 });

@@ -461,6 +461,7 @@ export const review = mutation({
             reviewedBy: user._id,
             reviewedAt: Date.now(),
             approvedAmount: args.approvedAmount,
+            ...(args.decision === "approved" ? { paymentStatus: "unpaid" as const } : {}),
             updatedAt: Date.now(),
         });
 
@@ -509,6 +510,70 @@ export const review = mutation({
             applicationId: args.applicationId,
             action: `application.${args.decision}`,
             description: `${args.decision === "approved" ? "Approved" : "Rejected"} application "${application.title}"`,
+        });
+    },
+});
+
+/**
+ * Record a payment for an approved application (manager action).
+ */
+export const recordPayment = mutation({
+    args: {
+        applicationId: v.id("applications"),
+        paymentMethod: v.union(
+            v.literal("fvm_contract"),
+            v.literal("manual"),
+            v.literal("external_link")
+        ),
+        paymentAmount: v.number(),
+        paymentCurrency: v.string(),
+        paymentTxHash: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const application = await ctx.db.get(args.applicationId);
+        if (!application) throw new Error("Application not found");
+
+        const program = await ctx.db.get(application.programId);
+        if (!program) throw new Error("Program not found");
+
+        const { user } = await requireOrgMember(
+            ctx,
+            program.organizationId,
+            "reviewer"
+        );
+
+        if (application.status !== "approved") {
+            throw new Error("Application must be approved to record payment");
+        }
+
+        await ctx.db.patch(args.applicationId, {
+            paymentStatus: "paid",
+            paymentAmount: args.paymentAmount,
+            paymentCurrency: args.paymentCurrency,
+            paymentTxHash: args.paymentTxHash,
+            paymentMethod: args.paymentMethod,
+            paidAt: Date.now(),
+            paidBy: user._id,
+            updatedAt: Date.now(),
+        });
+
+        // Notify the applicant
+        await createNotification(ctx, {
+            userId: application.applicantId,
+            type: "payment_completed",
+            title: "Payment Received! 💰",
+            message: `Payment of ${args.paymentCurrency === "USD" || args.paymentCurrency === "USDC" ? "$" : ""}${args.paymentAmount.toLocaleString()} ${args.paymentCurrency} has been processed for "${application.title}"`,
+            programId: application.programId,
+            applicationId: args.applicationId,
+        });
+
+        await logActivity(ctx, {
+            userId: user._id,
+            organizationId: program.organizationId,
+            programId: application.programId,
+            applicationId: args.applicationId,
+            action: "application.payment_completed",
+            description: `Recorded payment of ${args.paymentAmount} ${args.paymentCurrency} for "${application.title}"`,
         });
     },
 });
